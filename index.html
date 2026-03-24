@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>智本Claw · AI智能体工作台原型</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: #111a2c;
+        --panel-soft: #15233d;
+        --panel-hover: #1a2d4d;
+        --text: #dbe7ff;
+        --text-dim: #90a4c8;
+        --primary: #3c8dff;
+        --primary-strong: #1f6feb;
+        --success: #3fb950;
+        --warning: #f0b429;
+        --danger: #ff6b6b;
+        --border: #263859;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+        background: linear-gradient(120deg, #070d1a, #0d1728 60%, #101a2e);
+        color: var(--text);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .app {
+        display: grid;
+        grid-template-rows: 68px 1fr;
+        height: 100vh;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(8, 14, 26, 0.92);
+        backdrop-filter: blur(8px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-weight: 600;
+      }
+
+      .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 30% 30%, #5ca6ff, #19437f);
+        box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.2);
+      }
+
+      .mode-switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: 20px;
+      }
+
+      .mode-pill {
+        position: relative;
+        width: 290px;
+        background: #0f1d34;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        font-size: 13px;
+      }
+
+      .mode-pill::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: calc(50% + 4px);
+        width: calc(50% - 8px);
+        height: calc(100% - 8px);
+        border-radius: 999px;
+        background: linear-gradient(120deg, #2a78f0, #4d9dff);
+        box-shadow: 0 6px 16px rgba(50, 132, 255, 0.35);
+      }
+
+      .mode-pill span {
+        z-index: 1;
+        text-align: center;
+        padding: 6px 10px;
+        color: var(--text-dim);
+      }
+
+      .mode-pill .active {
+        color: white;
+        font-weight: 700;
+      }
+
+      .resource {
+        min-width: 350px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 14px;
+      }
+
+      .resource-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+
+      .resource .status {
+        color: #ff9d9d;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .bar {
+        margin-top: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #0b1324;
+        border: 1px solid #1c2d4d;
+        overflow: hidden;
+      }
+
+      .bar > div {
+        width: 88%;
+        height: 100%;
+        background: linear-gradient(90deg, #e06363, #ff7a7a);
+      }
+
+      .body {
+        display: grid;
+        grid-template-columns: 310px 1fr;
+        min-height: 0;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--border);
+        background: rgba(13, 22, 39, 0.9);
+        padding: 16px;
+        overflow: auto;
+      }
+
+      .sidebar h2 {
+        font-size: 15px;
+        margin: 2px 0 14px;
+        color: #c9dcff;
+      }
+
+      details {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--panel);
+        margin-bottom: 14px;
+      }
+
+      summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #bfd5ff;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .task-card {
+        margin: 10px;
+        border: 1px solid #2a3f66;
+        border-radius: 10px;
+        padding: 10px;
+        background: var(--panel-soft);
+      }
+
+      .task-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .task-meta {
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+      }
+
+      .loading {
+        background: rgba(60, 141, 255, 0.2);
+        color: #9cc5ff;
+      }
+
+      .queue {
+        background: rgba(240, 180, 41, 0.18);
+        color: #f6cf7f;
+      }
+
+      .done {
+        background: rgba(63, 185, 80, 0.16);
+        color: #90e5a0;
+      }
+
+      .main {
+        min-width: 0;
+        padding: 24px;
+        display: grid;
+        place-items: stretch;
+      }
+
+      .workspace {
+        width: min(1200px, 100%);
+        margin: 0 auto;
+        background: rgba(17, 27, 46, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 22px;
+        min-height: 82vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .workspace-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+
+      .workspace-header h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .workspace-header p {
+        margin: 6px 0 0;
+        color: var(--text-dim);
+        font-size: 13px;
+      }
+
+      .panel {
+        flex: 1;
+        border: 1px solid #2a3c61;
+        border-radius: 14px;
+        padding: 18px;
+        background: #0f1a2f;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 220px;
+        background: #0a1426;
+        color: #d9e8ff;
+        border: 1px solid #2f4672;
+        border-radius: 12px;
+        padding: 14px;
+        resize: vertical;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .upload {
+        margin-top: 16px;
+        border: 2px dashed #365482;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        color: var(--text-dim);
+        background: linear-gradient(180deg, rgba(60, 141, 255, 0.05), transparent);
+      }
+
+      .upload strong {
+        display: block;
+        color: #d3e5ff;
+        margin-top: 6px;
+      }
+
+      .controls {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(120deg, var(--primary), var(--primary-strong));
+        cursor: pointer;
+      }
+
+      .monitor-banner {
+        display: none;
+        background: rgba(240, 180, 41, 0.12);
+        border: 1px solid rgba(240, 180, 41, 0.45);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #f7d188;
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+
+      .console {
+        display: none;
+        margin-top: 10px;
+        background: #02060f;
+        border: 1px solid #283b63;
+        border-radius: 10px;
+        height: 320px;
+        overflow: auto;
+        padding: 10px;
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .log-line {
+        color: #9ec1ff;
+      }
+
+      .log-line span {
+        color: #64d0ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">智</div>
+          <div>
+            智本 AI 工作台
+            <div class="mode-switch">
+              <div class="mode-pill" aria-label="模式切换器">
+                <span>智本GPT（普通对话）</span>
+                <span class="active">智本Claw（复杂任务）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="resource" aria-label="算力资源仪表盘">
+          <div class="resource-row">
+            <span>当前系统算力负载</span>
+            <span class="status">🔴 算力繁忙，任务需排队</span>
+          </div>
+          <div class="bar"><div></div></div>
+        </div>
+      </header>
+
+      <div class="body">
+        <aside class="sidebar">
+          <h2>任务中心</h2>
+
+          <details open>
+            <summary>进行中 / 排队中</summary>
+            <div class="task-card">
+              <div class="task-title">2026Q1 资本充足率压力测试</div>
+              <div class="task-meta">提交于 09:15 · 优先级 P1</div>
+              <div class="badge loading">⟳ 正在运行：智能体拆解任务中</div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">同业资产风险加权分析</div>
+              <div class="task-meta">提交于 09:42 · 优先级 P2</div>
+              <div class="badge queue">排队中：前方 3 人</div>
+            </div>
+          </details>
+
+          <details open>
+            <summary>已完成</summary>
+            <div class="task-card">
+              <div class="task-title">金融债久期与收益归因报告</div>
+              <div class="task-meta">完成于 昨日 18:20</div>
+              <div class="badge done">✓ 已生成 48 页研究报告</div>
+            </div>
+            <div class="task-card">
+              <div class="task-title">分支机构资本占用优化建议</div>
+              <div class="task-meta">完成于 昨日 16:08</div>
+              <div class="badge done">✓ 可点击查看报告详情</div>
+            </div>
+          </details>
+        </aside>
+
+        <main class="main">
+          <section class="workspace">
+            <div class="workspace-header">
+              <div>
+                <h1>状态A：多模态任务输入台（Input Hub）</h1>
+                <p>用于提交复杂资本管理分析任务，支持长文本指令 + 附件协同。</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="monitor-banner" id="banner">⏱ 预计耗时 45 分钟，当前预估消耗 15,000 Tokens。</div>
+
+              <textarea id="prompt" placeholder="请输入复杂分析指令，例如：请结合附件中的资产负债表、RWA明细与三年经营数据，生成资本回报率归因分析并给出一级资本优化方案..."></textarea>
+
+              <div class="upload" id="upload">
+                ⬆
+                <strong>拖拽或点击上传附件</strong>
+                支持 Excel / Word / PDF，多文件联合分析
+              </div>
+
+              <div class="console" id="console">
+                <div class="log-line">[<span>系统</span>] 正在读取报表附件...</div>
+                <div class="log-line">[<span>智能体</span>] 正在提取资本充足率关键字段...</div>
+                <div class="log-line">[<span>智能体</span>] 正在计算资本回报率 (ROC/RORWA)...</div>
+                <div class="log-line">[<span>工具</span>] 调用内部风险参数库成功。</div>
+                <div class="log-line">[<span>智能体</span>] 正在生成长篇综合研究报告草稿...</div>
+              </div>
+
+              <div class="controls">
+                <button id="submitBtn">提交后台处理</button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const submitBtn = document.getElementById("submitBtn");
+      const promptArea = document.getElementById("prompt");
+      const uploadArea = document.getElementById("upload");
+      const consolePanel = document.getElementById("console");
+      const banner = document.getElementById("banner");
+
+      submitBtn.addEventListener("click", () => {
+        promptArea.style.display = "none";
+        uploadArea.style.display = "none";
+        banner.style.display = "block";
+        consolePanel.style.display = "block";
+        submitBtn.textContent = "任务执行中...";
+        submitBtn.disabled = true;
+      });
+    </script>
+  </body>
+</html>
